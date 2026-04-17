@@ -1,0 +1,41 @@
+# Mapbox / API keys (copy config.example.js to config.js)
+config.js
+
+# Source data (burial records – do not commit full exports)
+*.csv
+!buried-data.csv
+southview-daily-interment-all-time*.csv
+
+# Full-dump generated JSON at repo root only (not data/graves.json)
+/graves.json
+# Authoritative burial JSON (never commit — run python/sanitize_for_public.py to build public data/)
+data/graves.internal.json
+
+# data/graves.json + data/coordinates.json: public demo subset; regenerate with buried_subset or sanitize_for_public
+data/updates/*.csv
+data/updates/*.json
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*secrets*
+*credentials*
+
+# Python
+__pycache__/
+*.py[cod]
+.Python
+*.so
+.venv/
+venv/
+env/
+
+# OS / editor
+Untitled
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
