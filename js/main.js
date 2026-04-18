@@ -386,11 +386,21 @@ function selectGrave(grave) {
     photoEl.setAttribute('hidden', '');
     if (phEl) phEl.removeAttribute('hidden');
   }
+  const imgSourcingEl = document.getElementById('detail-image-sourcing');
+  if (imgSourcingEl) {
+    imgSourcingEl.innerHTML = grave.imageUrlSourcing
+        ? '<em>Image From: ' + escapeHtml(grave.imageUrlSourcing) + '</em>'
+        : '';
+  }
   const historyEl = document.getElementById('detail-history');
   const blurb = grave.historicalBlurb || grave.notes;
   if (blurb) {
     historyEl.style.display = 'block';
-    historyEl.innerHTML = '<p>' + escapeHtml(blurb) + '</p>';
+    let html = '<p>' + escapeHtml(blurb) + '</p>';
+    if (grave.historicalBlurbSourcing) {
+      html += '<p class="sourcing-credit"><em>Source: ' + escapeHtml(grave.historicalBlurbSourcing) + '</em></p>';
+    }
+    historyEl.innerHTML = html;
   } else {
     historyEl.innerHTML = '';
     historyEl.style.display = 'none';
