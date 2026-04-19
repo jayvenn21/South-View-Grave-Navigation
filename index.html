@@ -102,7 +102,16 @@
       </div>
       <div class="map-actions" id="map-actions">
         <button type="button" class="btn-reset" id="reset-map">Reset map</button>
-        <button type="button" class="btn-tour" id="start-tour">Start Explorer Mode</button>
+        <div class="tour-start-group">
+          <label for="tour-stop-count" class="tour-stop-label">Stops</label>
+          <select id="tour-stop-count" class="tour-stop-select">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+          </select>
+          <button type="button" class="btn-tour" id="start-tour">Start Explorer Mode</button>
+        </div>
       </div>
       <div class="tour-controls" id="tour-controls">
         <div class="tour-nav-row">

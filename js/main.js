@@ -72,8 +72,7 @@ map.on('error', (e) => {
 let popupInstance = null;
 let tourActive = false;
 let tourStep = 0;
-/** Burial stops on the path (not counting intro). Null means use all visible burials. */
-const TOUR_MAX_BURIAL_STOPS = null;
+let tourMaxBurialStops = 10;
 let selectedGrave = null;
 let hoveredGraveId = null;
 let waypointHoverLeaveTimer = null;
@@ -306,7 +305,7 @@ function flyToGrave(grave) {
 
 function tourBurials() {
   const withCoords = filteredGravesWithCoords();
-  return TOUR_MAX_BURIAL_STOPS == null ? withCoords : withCoords.slice(0, TOUR_MAX_BURIAL_STOPS);
+  return tourMaxBurialStops == null ? withCoords : withCoords.slice(0, tourMaxBurialStops);
 }
 
 function tourTotalStops() {
@@ -792,6 +791,13 @@ map.on('load', () => {
       const willOpen = helpPanel.classList.contains('hidden');
       helpPanel.classList.toggle('hidden', !willOpen);
       helpBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    });
+  }
+
+  const stopCountSelect = document.getElementById('tour-stop-count');
+  if (stopCountSelect) {
+    stopCountSelect.addEventListener('change', (e) => {
+      tourMaxBurialStops = parseInt(e.target.value, 10);
     });
   }
 

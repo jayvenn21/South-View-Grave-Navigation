@@ -41,6 +41,8 @@ FORM_TO_SCHEMA = {
     "Funeral Home": "funeralHome",
     "Coordinates (lat/lng)": "coordinates_raw",
     "Notes": "notes",
+    "Historical Blurb": "historicalBlurb",
+    "Image URL (free-use only)": "imageUrl",
 }
 
 
@@ -223,12 +225,28 @@ def main():
                 rec[k] = v
         records.append(rec)
 
+    EXTRA_KEYS = ["historicalBlurb", "imageUrl", "notes"]
+
+    if OUTPUT_GRAVES.is_file():
+        try:
+            with open(OUTPUT_GRAVES) as f:
+                prev = json.load(f)
+            prev_by_id = {r["id"]: r for r in prev if r.get("id") is not None}
+            for rec in records:
+                rid = rec.get("id")
+                if rid is not None and rid in prev_by_id:
+                    for k in EXTRA_KEYS:
+                        if k not in rec or rec[k] is None:
+                            rec[k] = prev_by_id[rid].get(k)
+            print(f"Preserved extra fields from existing graves.json ({len(prev_by_id)} records).")
+        except Exception as e:
+            print(f"Warning: could not read existing graves.json for field preservation: {e}")
+
     updates_path = UPDATES_DIR / UPDATES_FILE if UPDATES_FILE else None
     if updates_path and updates_path.is_file():
         try:
             form_rows = load_form_updates(updates_path)
             if form_rows:
-                all_keys = list(output_df.columns)
                 by_id = {r["id"]: dict(r) for r in records if r.get("id") is not None}
                 for r in form_rows:
                     rid = r.get("id")
@@ -237,20 +255,11 @@ def main():
                             if k != "id" and v is not None:
                                 by_id[rid][k] = v
                     elif rid is not None:
-                        new_rec = {k: None for k in all_keys}
-                        new_rec["id"] = rid
-                        for k, v in r.items():
-                            if k in all_keys and v is not None:
-                                new_rec[k] = v
-                        by_id[rid] = new_rec
+                        by_id[rid] = r
                     else:
                         new_id = max(by_id.keys(), default=0) + 1
-                        new_rec = {k: None for k in all_keys}
-                        new_rec["id"] = new_id
-                        for k, v in r.items():
-                            if k in all_keys and v is not None:
-                                new_rec[k] = v
-                        by_id[new_id] = new_rec
+                        r["id"] = new_id
+                        by_id[new_id] = r
                 records = list(by_id.values())
                 print(f"Merged {len(form_rows)} update(s) from {UPDATES_FILE} into graves.")
         except Exception as e:
