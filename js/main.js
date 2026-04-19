@@ -334,10 +334,29 @@ function fitMapToTourPath() {
   });
 }
 
+function closeMobileSidebar() {
+  const sb = document.querySelector('.sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  if (sb) sb.classList.remove('sidebar--open');
+  if (ov) ov.classList.remove('visible');
+}
+
+function updateToggleLabel() {
+  const el = document.getElementById('sidebar-toggle-label');
+  if (!el) return;
+  if (selectedGrave) {
+    const name = (selectedGrave.fullName || [selectedGrave.firstName, selectedGrave.lastName].filter(Boolean).join(' ')).trim();
+    el.textContent = name;
+  } else {
+    el.textContent = 'Burial Search';
+  }
+}
+
 function selectGrave(grave) {
   if (popupInstance) popupInstance.remove();
   setHoveredGrave(null);
   selectedGrave = grave;
+  if (grave && window.innerWidth <= 640) closeMobileSidebar();
   const listWrap = document.getElementById('list-view-wrap');
   const detailPanel = document.getElementById('selected-burial');
   if (!grave) {
@@ -353,6 +372,7 @@ function selectGrave(grave) {
     if (phEl) phEl.setAttribute('hidden', '');
     document.getElementById('detail-history').innerHTML = '';
     document.getElementById('detail-history').style.display = 'none';
+    updateToggleLabel();
     return;
   }
   listWrap.classList.add('hidden');
@@ -415,6 +435,7 @@ function selectGrave(grave) {
   } else {
     directionsEl.style.display = 'none';
   }
+  updateToggleLabel();
 }
 
 function applyFilters() {
@@ -537,19 +558,20 @@ function getTourCalloutText(step) {
   if (burials.length === 0) return '';
   const total = tourTotalStops();
   const last = total - 1;
-  if (step === 0) return 'Explorer Mode — interactive walkthrough of the cemetery.';
+  if (step === 0) return 'Explorer Mode - interactive walkthrough of the cemetery.';
   const g = burials[step - 1];
   const name = (g.fullName || [g.firstName, g.lastName].filter(Boolean).join(' ')).trim();
   if (step === last) {
-    return `${name} — Final stop. You've completed the interactive cemetery walkthrough.`;
+    return `${name} - Final stop. You've completed the interactive cemetery walkthrough.`;
   }
   return name;
 }
 
 function tourStopSummaryText() {
-  const total = tourTotalStops();
-  if (total <= 0) return '0 / 0';
-  return `Stop ${tourStep + 1} of ${total} — Explorer Mode`;
+  const burialCount = tourBurials().length;
+  if (burialCount <= 0) return '';
+  if (tourStep === 0) return `${burialCount} stops`;
+  return `Stop ${tourStep} of ${burialCount}`;
 }
 
 function syncTourCalloutProgressLine() {
@@ -563,10 +585,10 @@ function updateTourPath() {
   const progressCoords = getProgressPathCoords();
   map.getSource('tour-path-full').setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: fullCoords } });
   map.getSource('tour-path-progress').setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: progressCoords } });
-  const total = tourTotalStops();
+  const burialCount = tourBurials().length;
   syncTourCalloutProgressLine();
   const fillEl = document.getElementById('tour-progress-fill');
-  if (fillEl) fillEl.style.width = total > 0 ? ((tourStep + 1) / total * 100) + '%' : '0%';
+  if (fillEl) fillEl.style.width = burialCount > 0 ? (tourStep / burialCount * 100) + '%' : '0%';
 }
 
 function showTourCallout(text) {
@@ -792,6 +814,19 @@ map.on('load', () => {
       helpPanel.classList.toggle('hidden', !willOpen);
       helpBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
     });
+  }
+
+  const sidebarToggle = document.getElementById('sidebar-toggle');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
+  const sidebarEl = document.querySelector('.sidebar');
+  if (sidebarToggle && sidebarEl) {
+    sidebarToggle.addEventListener('click', () => {
+      const open = sidebarEl.classList.toggle('sidebar--open');
+      if (sidebarOverlay) sidebarOverlay.classList.toggle('visible', open);
+    });
+  }
+  if (sidebarOverlay) {
+    sidebarOverlay.addEventListener('click', closeMobileSidebar);
   }
 
   const stopCountSelect = document.getElementById('tour-stop-count');
